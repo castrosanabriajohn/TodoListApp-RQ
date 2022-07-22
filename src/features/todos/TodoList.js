@@ -12,7 +12,9 @@ const TodoList = () => {
     isError,
     error,
     data: todos,
-  } = useQuery("todos", getTodos);
+  } = useQuery("todos", getTodos, {
+    select: (data) => data.sort((a, b) => b.id - a.id),
+  });
 
   const addTodoMutation = useMutation(addTodo, {
     onSuccess: () => {
@@ -63,7 +65,32 @@ const TodoList = () => {
   } else if (isError) {
     content = <p>{error.message}</p>;
   } else {
-    content = JSON.stringify(todos);
+    content = todos.map((todo) => {
+      return (
+        <article key={todo.id}>
+          <div>
+            <input
+              type="checkbox"
+              checked={todo.completed}
+              id={todo.id}
+              onChange={() =>
+                updateTodoMutation.mutate({
+                  ...todo,
+                  completed: !todo.completed,
+                })
+              }
+            />
+            <label html-for={todo.id}>{todo.title}</label>
+          </div>
+          <button
+            className="thrash"
+            onClick={() => deleteTodoMutation.mutate({ id: todo.id })}
+          >
+            <FontAwesomeIcon icon={faTrash} />
+          </button>
+        </article>
+      );
+    });
   }
   return (
     <main>
